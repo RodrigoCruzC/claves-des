@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>DES</title>
+</head>
+<body style="background-color: darkcyan">
+	<input placeholder="Texto a Cifrar" id="text" type="text" maxlength="16" onkeypress="return validar(event)">
+	<!--<input placeholder="Clave" id="key" type="text">-->
+        <style>
+        .button {
+            background-color: #4CAF50; 
+            border: 2px solid #f44336;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+        }
+        </style>
+
+        
+	<input class="button" type="button" value="Determinar " onClick="claves()">
+	<h1 id="p1"></h1>
+
+
+	<script>
+	    var TABLA1= [
+            57, 49, 41, 33, 25, 17, 9,
+            1, 58, 50, 42, 34, 26, 18,
+            10, 2, 59, 51, 43, 35, 27,
+            19, 11, 3, 60, 52, 44, 36,
+
+            63, 55, 47, 39, 31, 23, 15,
+            7, 62, 54, 46, 38, 30, 22,
+            14, 6, 61, 53, 45, 37, 29,
+            21, 13, 5, 28, 20, 12, 4
+    ];
+
+    var TABLA2=[
+            14, 17, 11, 24, 1, 5,
+            3, 28, 15, 6, 21, 10,
+            23, 19, 12, 4, 26, 8,
+            16, 7, 27, 20, 13, 2,
+            41, 52, 31, 37, 47, 55,
+            30, 40, 51, 45, 33, 48,
+            44, 49, 39, 56, 34, 53,
+            46, 42, 50, 36, 29, 32
+    ];
+
+    var ITERACIONES=[1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1];
+
+    var cadenota="";
+    var cadenita="";
+
+		function claves(){
+			var cadenota="";
+    		var cadenita="";
+			//contenido de la caja de texto
+			var text=document.getElementById("text").value;
+			//contenido de la caja de texto binarizado
+			var st=["","","","","","","","","","","","","","","","",];
+			//4 bits de la caja de texto
+			var textBin="";
+
+			//binarizar toda la caja de texto
+			for(var i=0; i<text.length;i++){
+
+				textBin=text[i].charCodeAt(0);
+
+				//"hexadecimalizar"
+				//numeros
+				if(textBin<=57){
+					textBin=textBin-48;
+					//metodo para binarizar
+					textBin=textBin.toString(2);
+					
+					//agregar 0 a la izquierda
+					if(textBin.length<4){
+						var tmp=textBin;
+						textBin="";
+						for(var j=0;j<(4-tmp.length);j++){
+							textBin+="0";
+						}
+						textBin+=tmp;
+					}
+
+					//agregar los 4 bits al contenido general binarizado
+					st[i]=textBin;
+
+					//"hexadecimalizar"
+					//letras
+				}else{
+					textBin=textBin-87;
+					//console.log(i+" "+st[i]);
+					textBin=textBin.toString(2);
+					st[i]=textBin;
+				}
+
+			}
+
+			//Rellenar espacios vacios de st con 0000
+			for(var i=0;i<st.length;i++){
+				if(st[i]==""){
+					console.log("LA POSICION "+i+" ESTA VACIA");
+					st[i]="0000";
+				}
+				console.log(i+" "+st[i]);
+				//convertir el arreglo en string
+				cadenota+=st[i];
+				console.log(cadenota);
+			}
+
+			//TABLA 1
+			for(var i=0;i<TABLA1.length;i++){
+				//cadenita== cadenota dentro de tabla1
+				cadenita+=cadenota[TABLA1[i]-1];
+			}
+			//Agregar C0
+			document.getElementById("p1").innerHTML = "C0: "+cadenita;
+
+			var subcadenita1,subcadenita2;
+
+			//separar en 28 bits
+			subcadenita1=cadenita.substring(0,cadenita.length/2);
+			subcadenita2=cadenita.substring(cadenita.length/2,cadenita.length);
+
+			//Rotar y Tabla 2
+			for(var i=0;i<ITERACIONES.length;i++){
+
+				//Volver a Rotar
+					var i1=subcadenita1.substring(0,ITERACIONES[i]);
+					var i2=subcadenita2.substring(0,ITERACIONES[i]);
+					subcadenita1=subcadenita1.substring(ITERACIONES[i],subcadenita1.length);
+					subcadenita2=subcadenita2.substring(ITERACIONES[i],subcadenita2.length);
+					subcadenita1+=i1;
+					subcadenita2+=i2;
+					document.getElementById("p1").innerHTML+="<br/>C"+(i+1)+": "+subcadenita1+" | "+subcadenita2+"\n";
+
+				//console.log("ROTA1 "+tmp1);
+				cadenita="";
+
+				//Tabla 2
+				for(var j=0;j<TABLA2.length;j++){
+					var cadenitaTMP=subcadenita1+subcadenita2;
+					cadenita+=cadenitaTMP[TABLA2[j]-1];
+
+				}
+				//Imprimir K's
+				document.getElementById("p1").innerHTML+="<br/>K"+(i+1)+": "+cadenita+"\n"+"<br/>";
+                                console.log("  ");
+                                console.log(cadenita);
+			}
+		}
+		function validar(e){
+			var k=e.keyCode;
+			console.log(e.keyCode);
+
+			if(k>=48 && k<=57){
+				return true;
+			}
+
+			if(k>=97 && k<=102){
+				return true;
+			}
+			return false;
+		}
+
+	</script>
+</body>
+</html>
